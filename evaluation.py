@@ -1,7 +1,11 @@
 import numpy as np
 import pickle
 import os
+
+from config import Settings
 from utils.log import ConsoleLogger as cl
+
+settings = Settings()
 
 def train_test_split(X, y, random_state=41, test_size=0.2):
     """
@@ -64,6 +68,49 @@ def accuracy(y_true, y_pred):
     return correct_predictions / total_samples
 
 
+def precision(y_true, y_pred, target_class):
+    """
+    Tính Precision cho một class cụ thể (0 hoặc 1).
+    Công thức: TP / (TP + FP) của class đó.
+    """
+    y_true = y_true.flatten()
+    y_pred = y_pred.flatten()
+
+    # TP: Thực tế là target_class VÀ Dự đoán là target_class
+    tp = np.sum((y_true == target_class) & (y_pred == target_class))
+
+    # FP: Thực tế KHÔNG phải target_class NHƯNG Dự đoán là target_class
+    fp = np.sum((y_true != target_class) & (y_pred == target_class))
+
+    denominator = tp + fp
+
+    if denominator == 0:
+        return 0.0
+
+    return tp / denominator
+
+
+def recall(y_true, y_pred, target_class):
+    """
+    Tính Recall cho một class cụ thể (0 hoặc 1).
+    Công thức: TP / (TP + FN) của class đó.
+    """
+    y_true = y_true.flatten()
+    y_pred = y_pred.flatten()
+
+    # TP: Thực tế là target_class VÀ Dự đoán là target_class
+    tp = np.sum((y_true == target_class) & (y_pred == target_class))
+
+    # FN: Thực tế là target_class NHƯNG Dự đoán KHÔNG phải target_class
+    fn = np.sum((y_true == target_class) & (y_pred != target_class))
+
+    denominator = tp + fn
+
+    if denominator == 0:
+        return 0.0
+
+    return tp / denominator
+
 def balanced_accuracy(y_true, y_pred):
     """
     compute the balanced accuracy for multi-class classification.
@@ -109,7 +156,7 @@ def balanced_accuracy(y_true, y_pred):
     return balanced_acc
 
 
-def save_model(model, file_path="./data/result/trained_data.pkl"):
+def save_model(model, file_path=settings.DECISION_TREE_MODEL):
     """
     save a python object (e.g., trained model) to a pickle file.
 
@@ -128,7 +175,7 @@ def save_model(model, file_path="./data/result/trained_data.pkl"):
     cl.info(f"Trained model saved to: {file_path}")
 
 
-def load_model(file_path="./data/result/trained_data.pkl"):
+def load_model(file_path=settings.DECISION_TREE_MODEL):
     """
     load a python object (e.g., trained model) from a pickle file.
 
