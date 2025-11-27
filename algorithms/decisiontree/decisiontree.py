@@ -6,17 +6,27 @@ class DecisionTree:
     a decision tree classifier for binary classification problems.
     """
 
-    def __init__(self, min_samples=2, max_depth=2):
+    def __init__(self, min_samples=2, max_depth=2, verbose_log=False):
         """
         constructor for decisiontree class.
 
         parameters:
             min_samples (int): minimum number of samples required to split an internal node.
             max_depth (int): maximum depth of the decision tree.
+            verbose_log (bool): whether to print detailed logs during operation.
         """
         self.root = None
         self.min_samples = min_samples
         self.max_depth = max_depth
+        self.verbose_log = verbose_log
+        self._log(f"DecisionTree initialized with min_samples={self.min_samples}, max_depth={self.max_depth}.")
+
+    def _log(self, message):
+        """
+        helper method to print log messages if verbose_log is enabled.
+        """
+        if self.verbose_log:
+            print(f"[DecisionTree] {message}")
 
     def split_data(self, dataset, feature, threshold):
         """
@@ -62,6 +72,7 @@ class DecisionTree:
             label_examples = y[y == label]
             pl = len(label_examples) / len(y)  # probability of the label
             entropy += -pl * np.log2(pl)  # accumulate entropy
+        self._log(f"  Calculated entropy: {entropy:.4f}.")
         return entropy
 
     def information_gain(self, parent, left, right):
@@ -81,7 +92,9 @@ class DecisionTree:
         weight_right = len(right) / len(parent)
         entropy_left, entropy_right = self.entropy(left), self.entropy(right)
         weighted_entropy = weight_left * entropy_left + weight_right * entropy_right
-        return parent_entropy - weighted_entropy
+        gain = parent_entropy - weighted_entropy
+        self._log(f"  Calculated information gain: {gain:.4f}.")
+        return gain
 
     def best_split(self, dataset, num_samples, num_features):
         """
@@ -112,6 +125,7 @@ class DecisionTree:
                             "right_dataset": right_dataset,
                             "gain": gain
                         })
+                        self._log(f"  Found better split: feature={feature_index}, threshold={threshold:.4f}, gain={gain:.4f}.")
         return best_split
 
     def calculate_leaf_value(self, y):
@@ -125,7 +139,9 @@ class DecisionTree:
             most_occuring_value: the most frequent label in y.
         """
         y = list(y)
-        return max(y, key=y.count)
+        leaf_value = max(y, key=y.count)
+        self._log(f"  Calculated leaf value: {leaf_value}.")
+        return leaf_value
 
     def build_tree(self, dataset, current_depth=0):
         """
@@ -140,16 +156,21 @@ class DecisionTree:
         """
         X, y = dataset[:, :-1], dataset[:, -1]
         n_samples, n_features = X.shape
+        self._log(f"Building tree at depth {current_depth} with {n_samples} samples.")
 
         # stopping conditions
         if n_samples >= self.min_samples and current_depth <= self.max_depth:
             best = self.best_split(dataset, n_samples, n_features)
-            if best["gain"]:
+            if best["gain"] > 0: # Ensure gain is positive before splitting
+                self._log(f"  Split found at depth {current_depth}: feature={best['feature']}, threshold={best['threshold']:.4f}, gain={best['gain']:.4f}.")
                 left_node = self.build_tree(best["left_dataset"], current_depth + 1)
                 right_node = self.build_tree(best["right_dataset"], current_depth + 1)
                 return Node(best["feature"], best["threshold"], left_node, right_node, best["gain"])
+            else:
+                self._log(f"  No further split provides positive gain at depth {current_depth}. Creating leaf node.")
 
         leaf_value = self.calculate_leaf_value(y)
+        self._log(f"  Creating leaf node at depth {current_depth} with value {leaf_value}.")
         return Node(value=leaf_value)
 
     def fit(self, X, y):
@@ -160,8 +181,10 @@ class DecisionTree:
             X (ndarray): feature matrix.
             y (ndarray): target values.
         """
+        self._log(f"Starting fit with X_shape={X.shape}, y_shape={y.shape}.")
         dataset = np.concatenate((X, y), axis=1)
         self.root = self.build_tree(dataset)
+        self._log("Fit complete. Decision tree built.")
 
     def predict(self, X):
         """
@@ -173,7 +196,9 @@ class DecisionTree:
         returns:
             list: predicted class labels.
         """
+        self._log(f"Starting prediction for {X.shape[0]} samples.")
         predictions = [self.make_prediction(x, self.root) for x in X]
+        self._log("Prediction complete.")
         return np.array(predictions)
 
     def make_prediction(self, x, node):
@@ -188,9 +213,14 @@ class DecisionTree:
             predicted label for the feature vector.
         """
         if node.value is not None:  # leaf node
+            self._log(f"    Reached leaf node with value {node.value}.")
             return node.value
+        
+        self._log(f"    Traversing node: feature={node.feature}, threshold={node.threshold:.4f}.")
         feature = x[node.feature]
         if feature <= node.threshold:
+            self._log(f"    Feature value {feature:.4f} <= threshold {node.threshold:.4f}. Going left.")
             return self.make_prediction(x, node.left)
         else:
+            self._log(f"    Feature value {feature:.4f} > threshold {node.threshold:.4f}. Going right.")
             return self.make_prediction(x, node.right)

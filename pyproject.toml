@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "decisiontreeml"
+name = "BinaryClassificationML"
 version = "0.1.0"
-description = "Implementation of decision tree for machine learning"
+description = "Implementation of some machine learning algorithm for binary classification."
 authors = ["Myssal"]
 readme = "README.md"
 package-mode = false
