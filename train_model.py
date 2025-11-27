@@ -1,3 +1,7 @@
+import csv
+import os
+from datetime import datetime
+
 from algorithms.logistic_regression.logistic_regression import LogisticRegression
 from config import Settings
 from algorithms.k_nearest_neighbors.knn import KNN
@@ -74,6 +78,8 @@ class Train:
         # 4. In kết quả
         self._display_results(model_name, params, results)
 
+        self._log_to_csv(model_name, params, results)
+
     def _display_results(self, model_name, params, results):
         """Hàm nội bộ để in kết quả đẹp mắt"""
         param_str = ", ".join([f"{k}={v}" for k, v in params.items()])
@@ -88,6 +94,37 @@ class Train:
         cl.info(
             f"Lớp LÀNH TÍNH (0) -> Precision: {results['precision_negative']:.4f} | Recall: {results['recall_negative']:.4f}")
         cl.info("-" * 40)
+
+    def _log_to_csv(self, model_name, params, results, filepath = settings.MODEL_COMPARISON):
+        file_exists = os.path.isfile(filepath)
+
+        with open(filepath, mode = 'a', newline='', encoding="utf-8") as f:
+            writer = csv.writer(f)
+
+            if not file_exists:
+                header = [
+                    "Timestamp", "Parameters",
+                    "Accuracy", "Balanced Acc",
+                    "Precision (M)", "Recall (M)",
+                    "Precision (B)", "Recall (B)"
+                ]
+                writer.writerow(header)
+            else: writer.writerow([model_name])
+
+            param_str = str(params).replace(',', ';')
+            row = [
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                param_str,
+                f"{results['accuracy']:.4f}",
+                f"{results['balanced_accuracy']:.4f}",
+                f"{results['precision_positive']:.4f}",
+                f"{results['recall_positive']:.4f}",
+                f"{results['precision_negative']:.4f}",
+                f"{results['recall_negative']:.4f}"
+            ]
+
+            writer.writerow(row)
+            cl.info(f"Đã lưu kết quả vào file: {filepath}")
 
     def run_decision_tree(self):
         self._run_generic_pipeline(

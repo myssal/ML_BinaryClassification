@@ -16,6 +16,7 @@ class Settings:
     SCALER_PARAMS = r"./data/result/scaler_params.json"
     FEATURE_CONFIG = r"./data/result/feature_config.json"
 
+    MODEL_COMPARISON = r"./data/result/model_comparison.csv"
 
     TARGET_LABEL = "diagnosis"
 

@@ -140,7 +140,7 @@ class FeatureSelection:
 
     def save_processed_dataset(self, output_path = settings.DATASET_CLEAN_FILE):
         if self.selected_features is None:
-            cl.warn("Chưa c features nào được chọn. Hãy chạt prepare_data!")
+            cl.warn("Chưa có features nào được chọn. Hãy chạy prepare_data!")
             return
 
         try:
