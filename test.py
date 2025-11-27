@@ -17,7 +17,7 @@ class ModelTester:
 
     def _load_json(self, path):
         if not os.path.exists(path):
-            cl.error(f"Lỗi: không tìm thấy file {path}")
+            cl.error(f"File {path} not found.")
             sys.exit(1)
 
         with open(path, 'r', encoding='utf-8') as f:
@@ -29,7 +29,7 @@ class ModelTester:
             for feature in features_order:
                 val = data_dict.get(feature)
                 if val is None:
-                    cl.warn(f"Cảnh báo: Thiếu thuộc tính '{feature}' trong dữ liệu test!")
+                    cl.warn(f"Feature '{feature}' not found in test dataset!")
                     val = 0.0
                 data_list.append(val)
         except Exception as e:
@@ -43,7 +43,7 @@ class ModelTester:
             Chuần hoá dữ liệu đầu vào: (X - mean) /std
         """
         if self.scaler_params is None:
-            cl.warn("Cảnh báo: Không có thông tin Scaler. Dữ liệu có thể sai lệch.")
+            cl.warn("No scaler info, result maybe wrong.")
             return raw_data_array
 
         mean = np.array(self.scaler_params["mean"])
@@ -57,7 +57,7 @@ class ModelTester:
         cl.info(f"\n{'='*20} TESTING {model_name.upper()} {'='*20}")
 
         if not os.path.exists(model_path):
-            cl.error(f"Không tìm thấy file model: {model_path}")
+            cl.error(f"No model found in: {model_path}")
             return
 
         with open(model_path, "rb") as f:
@@ -70,29 +70,29 @@ class ModelTester:
 
         for case in test_cases:
             cl.info(f"\n>>> Case ID: {case['id']}")
-            cl.info(f"    Mô tả: {case['note']}")
+            cl.info(f"    Description: {case['note']}")
 
             X_raw = self._convert_data_to_array(case["data"], features_order)
 
             X_input = self._preprocess_input(X_raw)
 
             try:
-                # Dự đoán
+                # Predict
                 prediction = model.predict(X_input)
                 pred_val = prediction[0]
 
-                # So sánh kết quả
+                # Compare value
                 expected = case['expected_value']
                 is_correct = (pred_val == expected)
 
-                result_str = "CHÍNH XÁC" if is_correct else "SAI"
+                result_str = "Correct" if is_correct else "Wrong"
                 if is_correct: correct_count += 1
 
-                label_map = {1: "Ác tính (M)", 0: "Lành tính (B)"}
-                cl.info(f"    Dự đoán: {pred_val} -> {label_map.get(pred_val, 'Unknown')}")
-                cl.info(f"    Thực tế: {expected} -> {label_map.get(expected, 'Unknown')}")
-                cl.info(f"    Kết luận: {result_str}")
+                label_map = {1: "Malignant (M)", 0: "Benign (B)"}
+                cl.info(f"    Prediction: {pred_val} -> {label_map.get(pred_val, 'Unknown')}")
+                cl.info(f"    Actual: {expected} -> {label_map.get(expected, 'Unknown')}")
+                cl.info(f"    Result: {result_str}")
 
             except Exception as e:
-                cl.error(f"    Lỗi khi dự đoán: {e}")
-                cl.error(f"    Số feature đầu vào: {X_input.shape[1]}")
+                cl.error(f"    Error predicting: {e}")
+                cl.error(f"    Features input number: {X_input.shape[1]}")

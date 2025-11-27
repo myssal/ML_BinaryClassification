@@ -13,51 +13,53 @@ from utils.log import ConsoleLogger as cl
 settings = Settings()
 
 class Train:
+    """
+    class for training different machine learning models on a dataset.
+
+    parameters:
+        input_csv (str): path to the input csv file.
+        corr_threshold (float): correlation threshold for feature selection.
+    """
     def __init__(self, input_csv=settings.DATASET_FILE, corr_threshold=0.25):
-        """
-        Khởi tạo class Train.
-        :param input_csv: Đường dẫn file csv.
-        :param corr_threshold: Ngưỡng tương quan để lọc feature.
-        """
         self.input_csv = input_csv
         self.corr_threshold = corr_threshold
 
-        # Biến lưu trữ dữ liệu đã xử lý để dùng chung (Caching)
-        # Giúp không phải đọc lại file mỗi khi đổi thuật toán
+        # variables to store preprocessed data for caching
+        # avoids reloading or reprocessing when switching models
         self.X = None
         self.y = None
         self.fs = None
 
     def _prepare_data_once(self):
         """
-        Hàm nội bộ: Kiểm tra xem dữ liệu đã được load chưa.
-        Nếu chưa thì load và xử lý. Nếu rồi thì bỏ qua.
+        internal function: check if data is already loaded.
+        if not, load and preprocess it. otherwise, reuse cached data.
         """
         if self.X is None or self.y is None:
-            cl.info(">>> Đang chuẩn bị dữ liệu đầu vào (Chạy 1 lần)...")
+            cl.info(">>> preparing input data (run once)...")
             self.fs = FeatureSelection(self.input_csv)
             self.X, self.y = self.fs.prepare_data(corr_threshold=self.corr_threshold)
 
             self.fs.save_processed_dataset(output_path=settings.DATASET_CLEAN_FILE)
 
-            # (Tùy chọn) Lưu config feature
+            # optionally save feature configuration
             self.fs.save_features_config(settings.FEATURE_CONFIG)
 
+            # save scaler parameters
             self.fs.save_scaler_params(settings.SCALER_PARAMS)
         else:
-            cl.info(">>> Sử dụng lại dữ liệu đã cache trong bộ nhớ.")
+            cl.info(">>> using cached data already in memory.")
 
     def _run_generic_pipeline(self, model_name, model_class, params, save_path):
         """
-        Hàm cốt lõi (Core Logic): Chạy quy trình train cho BẤT KỲ model nào.
+        core function to train any model with a standard pipeline.
         """
-        # 1. Đảm bảo dữ liệu đã có
+        # ensure data is ready
         self._prepare_data_once()
 
-        cl.info(f"\n>>> BẮT ĐẦU HUẤN LUYỆN: {model_name.upper()}")
+        cl.info(f"\n>>> starting training: {model_name.upper()}")
 
-
-        # 2. Train và Save
+        # train model and save
         X_test, y_test = train_and_save_pipeline(
             X=self.X,
             y=self.y,
@@ -68,31 +70,33 @@ class Train:
             save_path=save_path
         )
 
-        # 3. Load và Evaluate
+        # load model and evaluate
         results = load_and_evaluate_pipeline(
             X_test=X_test,
             y_test=y_test,
             load_path=save_path
         )
 
-        # 4. In kết quả
+        # display results
         self._display_results(model_name, params, results)
 
         self._log_to_csv(model_name, params, results)
 
     def _display_results(self, model_name, params, results):
-        """Hàm nội bộ để in kết quả đẹp mắt"""
+        """
+        helper to display training results in a readable format
+        """
         param_str = ", ".join([f"{k}={v}" for k, v in params.items()])
-        cl.info(f"=== KẾT QUẢ: {model_name} ({param_str}) ===")
+        cl.info(f"=== results: {model_name} ({param_str}) ===")
 
-        cl.info(f"Accuracy (Tổng):     {results['accuracy']:.4f}")
-        cl.info(f"Balanced Accuracy:   {results['balanced_accuracy']:.4f}")
+        cl.info(f"accuracy (overall):     {results['accuracy']:.4f}")
+        cl.info(f"balanced accuracy:      {results['balanced_accuracy']:.4f}")
 
-        cl.info("\n--- Chi tiết từng lớp ---")
+        cl.info("\n--- class details ---")
         cl.info(
-            f"Lớp ÁC TÍNH (1) -> Precision: {results['precision_positive']:.4f} | Recall: {results['recall_positive']:.4f}")
+            f"class Malignant (1) -> precision: {results['precision_positive']:.4f} | recall: {results['recall_positive']:.4f}")
         cl.info(
-            f"Lớp LÀNH TÍNH (0) -> Precision: {results['precision_negative']:.4f} | Recall: {results['recall_negative']:.4f}")
+            f"class Benign (0) -> precision: {results['precision_negative']:.4f} | recall: {results['recall_negative']:.4f}")
         cl.info("-" * 40)
 
     def _log_to_csv(self, model_name, params, results, filepath = settings.MODEL_COMPARISON):
@@ -127,6 +131,9 @@ class Train:
             cl.info(f"Đã lưu kết quả vào file: {filepath}")
 
     def run_decision_tree(self):
+        """
+        run the decision tree model with predefined parameters
+        """
         self._run_generic_pipeline(
             model_name=settings.DECISION_TREE,
             model_class=DecisionTree,
@@ -135,17 +142,23 @@ class Train:
         )
 
     def run_knn(self):
+        """
+        run the k-nearest neighbors model with predefined parameters
+        """
         self._run_generic_pipeline(
             model_name=settings.KNN,
             model_class=KNN,
             params={"k": 5},
-            save_path = settings.KNN_MODEL
+            save_path=settings.KNN_MODEL
         )
 
     def run_logistic_regression(self):
+        """
+        run the logistic regression model with predefined parameters
+        """
         self._run_generic_pipeline(
-            model_name = settings.LOGISTIC_REGRESSION,
-            model_class = LogisticRegression,
-            params = {"learning_rate": 0.01, "n_iters": 2000},
-            save_path = settings.LOGISTIC_REGRESSION_MODEL
+            model_name=settings.LOGISTIC_REGRESSION,
+            model_class=LogisticRegression,
+            params={"learning_rate": 0.01, "n_iters": 2000},
+            save_path=settings.LOGISTIC_REGRESSION_MODEL
         )

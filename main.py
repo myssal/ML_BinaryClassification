@@ -1,12 +1,13 @@
 from config import Settings
 from test import ModelTester
 from train_model import Train
-
+from utils.log import ConsoleLogger as cl
 if __name__ == "__main__":
 
     settings = Settings()
 
     train = Train()
+
     train.run_knn()
     train.run_decision_tree()
     train.run_logistic_regression()

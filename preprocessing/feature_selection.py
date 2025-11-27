@@ -119,7 +119,7 @@ class FeatureSelection:
 
     def save_features_config(self, output_path=settings.FEATURE_CONFIG):
         if self.selected_features is None:
-            cl.warn("Chưa có features nào được chọn để lưu!")
+            cl.warn("No feature selected to save!")
             return
 
         data_to_save = {
@@ -133,14 +133,14 @@ class FeatureSelection:
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(data_to_save, f, indent=4, ensure_ascii=False)
 
-            cl.info(f"Đã lưu cấu hình features vào: {output_path}")
+            cl.info(f"Features config saved to: {output_path}")
 
         except Exception as e:
             cl.error_generic(e)
 
     def save_processed_dataset(self, output_path = settings.DATASET_CLEAN_FILE):
         if self.selected_features is None:
-            cl.warn("Chưa có features nào được chọn. Hãy chạy prepare_data!")
+            cl.warn("No features selected, please run feature_data()")
             return
 
         try:
@@ -155,15 +155,15 @@ class FeatureSelection:
 
             df_clean.to_csv(output_path, index = False)
 
-            cl.info(f"Đã lưu dataset clean")
+            cl.info(f"Saved cleaned dataset.")
         except KeyError as e:
-            cl.error(f"Lỗi: không tìm thấy cột {e} trong dữ liệu gốc.")
+            cl.error(f"Column {e} not found in original dataset.")
         except Exception as e:
             cl.error_generic(e)
 
     def save_scaler_params(self, output_path = settings.SCALER_PARAMS):
         if not hasattr(self, 'mean') or not hasattr(self, 'std'):
-            cl.warn("Chưa scale dữ liệu, không có tham số để lưu")
+            cl.warn("Data hasn't been scaled, no parameters to save")
             return
         data = {
             "mean": self.mean.tolist(),
@@ -174,4 +174,4 @@ class FeatureSelection:
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
-        cl.info(f"Đã lưu tham số Scaler vào: {output_path}")
+        cl.info(f"Scaler params saved to: {output_path}")

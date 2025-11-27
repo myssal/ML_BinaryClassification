@@ -79,11 +79,11 @@ def load_and_evaluate_pipeline(X_test, y_test, load_path=settings.DECISION_TREE_
     acc = accuracy(y_test, predictions)
     bal_acc = balanced_accuracy(y_test, predictions)
 
-    # 1. Cho lớp DƯƠNG TÍNH (Malignant - Class 1)
+    # for Malignant - Class 1
     prec_1 = precision(y_test, predictions, target_class=1)
     rec_1 = recall(y_test, predictions, target_class=1)
 
-    # 2. Cho lớp ÂM TÍNH (Benign - Class 0)
+    # for Benign - Class 0
     prec_0 = precision(y_test, predictions, target_class=0)
     rec_0 = recall(y_test, predictions, target_class=0)
     # ---------------------
@@ -91,9 +91,9 @@ def load_and_evaluate_pipeline(X_test, y_test, load_path=settings.DECISION_TREE_
     return {
         "accuracy": acc,
         "balanced_accuracy": bal_acc,
-        "precision_positive": prec_1, # Dương tính
-        "recall_positive": rec_1,     # Dương tính
-        "precision_negative": prec_0, # Âm tính
-        "recall_negative": rec_0,     # Âm tính
+        "precision_positive": prec_1, # positive
+        "recall_positive": rec_1,     # positive
+        "precision_negative": prec_0, # negative
+        "recall_negative": rec_0,     # negative
         "predictions": predictions
     }
