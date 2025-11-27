@@ -20,9 +20,10 @@ class Train:
         input_csv (str): path to the input csv file.
         corr_threshold (float): correlation threshold for feature selection.
     """
-    def __init__(self, input_csv=settings.DATASET_FILE, corr_threshold=0.25):
+    def __init__(self, input_csv=settings.DATASET_FILE, corr_threshold=settings.CORRELATION_THRESHOLD, verbose_log=False):
         self.input_csv = input_csv
         self.corr_threshold = corr_threshold
+        self.verbose_log = verbose_log
 
         # variables to store preprocessed data for caching
         # avoids reloading or reprocessing when switching models
@@ -128,7 +129,7 @@ class Train:
             ]
 
             writer.writerow(row)
-            cl.info(f"Đã lưu kết quả vào file: {filepath}")
+            cl.info(f"Comparison result saved to: {filepath}")
 
     def run_decision_tree(self):
         """
@@ -137,7 +138,7 @@ class Train:
         self._run_generic_pipeline(
             model_name=settings.DECISION_TREE,
             model_class=DecisionTree,
-            params={"min_samples": 2, "max_depth": 2},
+            params={"min_samples": 2, "max_depth": 2, "verbose_log": self.verbose_log},
             save_path=settings.DECISION_TREE_MODEL
         )
 
@@ -148,7 +149,7 @@ class Train:
         self._run_generic_pipeline(
             model_name=settings.KNN,
             model_class=KNN,
-            params={"k": 5},
+            params={"k": 5, "verbose_log": self.verbose_log},
             save_path=settings.KNN_MODEL
         )
 
@@ -159,6 +160,6 @@ class Train:
         self._run_generic_pipeline(
             model_name=settings.LOGISTIC_REGRESSION,
             model_class=LogisticRegression,
-            params={"learning_rate": 0.01, "n_iters": 2000},
+            params={"learning_rate": 0.01, "n_iters": 2000, "verbose_log": self.verbose_log},
             save_path=settings.LOGISTIC_REGRESSION_MODEL
         )

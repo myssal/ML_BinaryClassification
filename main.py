@@ -6,11 +6,11 @@ if __name__ == "__main__":
 
     settings = Settings()
 
-    train = Train()
+    train = Train(verbose_log=True)
 
-    train.run_knn()
+    #train.run_knn()
     train.run_decision_tree()
-    train.run_logistic_regression()
+    #train.run_logistic_regression()
 
     # Đường dẫn file JSON
     # tester = ModelTester(settings.TEST_FILE, settings.SCALER_PARAMS)

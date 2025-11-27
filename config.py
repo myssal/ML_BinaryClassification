@@ -19,7 +19,7 @@ class Settings:
     MODEL_COMPARISON = r"./data/result/model_comparison.csv"
 
     TARGET_LABEL = "diagnosis"
-
+    CORRELATION_THRESHOLD = 0.25
 @lru_cache
 def get_setting() -> Settings:
     return Settings()
