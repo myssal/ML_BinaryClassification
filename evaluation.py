@@ -76,10 +76,10 @@ def precision(y_true, y_pred, target_class):
     y_true = y_true.flatten()
     y_pred = y_pred.flatten()
 
-    # TP: Thực tế là target_class VÀ Dự đoán là target_class
+    # true positive: actual target_class and prediction also is target_class
     tp = np.sum((y_true == target_class) & (y_pred == target_class))
 
-    # FP: Thực tế KHÔNG phải target_class NHƯNG Dự đoán là target_class
+    # false positive: actual not target_class but prediction is target_class
     fp = np.sum((y_true != target_class) & (y_pred == target_class))
 
     denominator = tp + fp
@@ -98,10 +98,10 @@ def recall(y_true, y_pred, target_class):
     y_true = y_true.flatten()
     y_pred = y_pred.flatten()
 
-    # TP: Thực tế là target_class VÀ Dự đoán là target_class
+    # true positive: actual target_class and prediction also is target_class
     tp = np.sum((y_true == target_class) & (y_pred == target_class))
 
-    # FN: Thực tế là target_class NHƯNG Dự đoán KHÔNG phải target_class
+    # false negative actual target_class but prediction is not target_class
     fn = np.sum((y_true == target_class) & (y_pred != target_class))
 
     denominator = tp + fn
