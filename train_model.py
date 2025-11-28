@@ -13,29 +13,17 @@ from utils.log import ConsoleLogger as cl
 settings = Settings()
 
 class Train:
-    """
-    class for training different machine learning models on a dataset.
-
-    parameters:
-        input_csv (str): path to the input csv file.
-        corr_threshold (float): correlation threshold for feature selection.
-    """
     def __init__(self, input_csv=settings.DATASET_FILE, corr_threshold=settings.CORRELATION_THRESHOLD, verbose_log=False):
         self.input_csv = input_csv
         self.corr_threshold = corr_threshold
         self.verbose_log = verbose_log
 
-        # variables to store preprocessed data for caching
-        # avoids reloading or reprocessing when switching models
         self.X = None
         self.y = None
         self.fs = None
 
     def _prepare_data_once(self):
-        """
-        internal function: check if data is already loaded.
-        if not, load and preprocess it. otherwise, reuse cached data.
-        """
+
         if self.X is None or self.y is None:
             cl.info(">>> preparing input data (run once)...")
             self.fs = FeatureSelection(self.input_csv)
@@ -52,10 +40,6 @@ class Train:
             cl.info(">>> using cached data already in memory.")
 
     def _run_generic_pipeline(self, model_name, model_class, params, save_path):
-        """
-        core function to train any model with a standard pipeline.
-        """
-        # ensure data is ready
         self._prepare_data_once()
 
         cl.info(f"\n>>> starting training: {model_name.upper()}")
@@ -77,16 +61,11 @@ class Train:
             y_test=y_test,
             load_path=save_path
         )
-
-        # display results
         self._display_results(model_name, params, results)
 
         self._log_to_csv(model_name, params, results)
 
     def _display_results(self, model_name, params, results):
-        """
-        helper to display training results in a readable format
-        """
         param_str = ", ".join([f"{k}={v}" for k, v in params.items()])
         cl.info(f"=== results: {model_name} ({param_str}) ===")
 
@@ -132,9 +111,6 @@ class Train:
             cl.info(f"Comparison result saved to: {filepath}")
 
     def run_decision_tree(self):
-        """
-        run the decision tree model with predefined parameters
-        """
         self._run_generic_pipeline(
             model_name=settings.DECISION_TREE,
             model_class=DecisionTree,
@@ -143,9 +119,6 @@ class Train:
         )
 
     def run_knn(self):
-        """
-        run the k-nearest neighbors model with predefined parameters
-        """
         self._run_generic_pipeline(
             model_name=settings.KNN,
             model_class=KNN,
@@ -154,9 +127,6 @@ class Train:
         )
 
     def run_logistic_regression(self):
-        """
-        run the logistic regression model with predefined parameters
-        """
         self._run_generic_pipeline(
             model_name=settings.LOGISTIC_REGRESSION,
             model_class=LogisticRegression,

@@ -39,9 +39,6 @@ class ModelTester:
         return np.array(data_list).reshape(1, -1)
 
     def _preprocess_input(self, raw_data_array):
-        """
-            Chuần hoá dữ liệu đầu vào: (X - mean) /std
-        """
         if self.scaler_params is None:
             cl.warn("No scaler info, result maybe wrong.")
             return raw_data_array

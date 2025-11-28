@@ -27,4 +27,3 @@ class ConsoleLogger:
     @staticmethod
     def error_generic(exception: Exception):
         ConsoleLogger.log(f"Unexpected error occurred: {exception}", "ERROR")
-

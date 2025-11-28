@@ -10,25 +10,19 @@ from utils.log import ConsoleLogger as cl
 settings = Settings()
 
 class FeatureSelection:
-    """
-    Prepare dataset for decision tree
-    """
 
     def __init__(self, csv_input):
         self.csv_input = csv_input
         self.data_frame = self._get_dataframe()
-        self.corr = self._get_correlation() # compute correlation matrix
-        self.selected_features = None # list of selected feature names
-        self.X = None # feature array
-        self.y = None # target array
+        self.corr = self._get_correlation()
+        self.selected_features = None
+        self.X = None
+        self.y = None
 
         self.mean = None
         self.std = None
 
     def _get_dataframe(self):
-        """
-        load CSV file into a pandas DataFrame.
-        """
         try:
             df = pd.read_csv(self.csv_input)
             return df
@@ -39,22 +33,16 @@ class FeatureSelection:
         return None
 
     def _get_correlation(self):
-        """
-        encode target column and compute correlation matrix.
-        """
         try:
             self.data_frame[settings.TARGET_LABEL] = (self.data_frame[settings.TARGET_LABEL] == 'M').astype(int)
-            corr = self.data_frame.corr() # correlation between features
+            corr = self.data_frame.corr()
             return corr
         except Exception as e:
             cl.error_generic(e)
         return None
 
-    def feature_correlated_selection(self, corr_threshold=0.25):
-        """
-        select features with correlation above the threshold with target.
-        """
-        cor_target = abs(self.corr[settings.TARGET_LABEL]) # absolute correlation with target
+    def feature_correlated_selection(self, corr_threshold=settings.CORRELATION_THRESHOLD):
+        cor_target = abs(self.corr[settings.TARGET_LABEL])
         relevant = cor_target[cor_target > corr_threshold]
 
         names = []
@@ -72,9 +60,6 @@ class FeatureSelection:
         return names
 
     def assign_training_data(self):
-        """
-        assign selected features to X and target to y.
-        """
         if not self.selected_features:
             cl.error("No features selected.")
             return None
@@ -89,29 +74,14 @@ class FeatureSelection:
         if self.X is None:
             cl.error("Training data not assigned.")
             return None
-        self.mean = np.mean(self.X, axis=0) # mean per feature
-        self.std = np.std(self.X, axis=0) # std per feature
+        self.mean = np.mean(self.X, axis=0)
+        self.std = np.std(self.X, axis=0)
 
-        self.X = (self.X - self.mean) / self.std # standardize features
+        self.X = (self.X - self.mean) / self.std
         cl.info("Features scaled.")
         return self.X
 
-    def prepare_data(self, corr_threshold=0.25):
-        """
-        Preprocess pipeline: select features, assign training data, and scale features.
-
-        Parameters:
-        -----------
-        corr_threshold : float
-            Threshold to select features based on correlation with target (Default by 0.25).
-
-        Returns:
-        --------
-        X : numpy.ndarray
-            Scaled feature array
-        y : numpy.ndarray
-            Target array
-        """
+    def prepare_data(self, corr_threshold=settings.CORRELATION_THRESHOLD):
         self.feature_correlated_selection(corr_threshold=corr_threshold)
         self.assign_training_data()
         self.scale_features()

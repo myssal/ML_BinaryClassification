@@ -3,16 +3,6 @@ import pprint
 
 
 def show_decision_tree_pkl(file_path):
-    """
-    Load a pickled DecisionTree and display its structure recursively.
-
-    Parameters:
-    -----------
-    file_path : str
-        Path to the pickled DecisionTree object.
-    """
-
-    # Load the model
     try:
         with open(file_path, "rb") as f:
             model = pickle.load(f)
@@ -23,7 +13,6 @@ def show_decision_tree_pkl(file_path):
         print(f"Error loading pickle: {e}")
         return
 
-    # Recursive function to print tree
     def print_node(node, depth=0):
         if node is None:
             return
@@ -35,7 +24,6 @@ def show_decision_tree_pkl(file_path):
         print_node(getattr(node, "left", None), depth + 1)
         print_node(getattr(node, "right", None), depth + 1)
 
-    # Check if model has root node
     if hasattr(model, "root"):
         print(f"DecisionTree structure from '{file_path}':")
         print_node(model.root)
